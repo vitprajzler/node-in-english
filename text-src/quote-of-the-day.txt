@@ -1,0 +1,2 @@
+Create a new API endpoint for a quote of the day, that can be imported by the server as a handler for a path.
+Come up with a list of 5 quotes related to machine learning and data science, and return one of them at random when the endpoint is hit.

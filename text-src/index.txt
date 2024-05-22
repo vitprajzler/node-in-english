@@ -1,2 +1,1 @@
-Start a new Fastify server on port 3000.
-It should respond to GET requests to the root URL with 'Hello, AI world!'
+This project will run a Fastify server with multiple routes.

@@ -1,17 +1,66 @@
 import dotenv from "dotenv";
 dotenv.config();
 import OpenAI from "openai";
-import {
-  ChatCompletionMessageParam,
-  CompletionUsage,
-} from "openai/resources/index.mjs";
+import { ChatCompletionMessageParam, CompletionUsage } from "openai/resources/index.mjs";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+import fs from "fs/promises";
+
+const OPENAI_MODEL = "gpt-3.5-turbo-0125";
+
+async function step(step: string, conversation: ChatCompletionMessageParam[], role?: "user" | "system") {
+  conversation.push({
+    role: role || "user",
+    content: step,
+  });
+
+  const completion = await openai.chat.completions.create({
+    messages: conversation,
+    model: OPENAI_MODEL,
+  });
+
+  if (completion.choices.length > 1) {
+    console.error("Expected only one completion choice");
+  }
+
+  conversation.push(completion.choices[0].message);
+
+  let sanitizedContent = completion.choices[0].message.content!;
+  if (sanitizedContent.startsWith("```")) {
+    // remove the first line
+    const index = sanitizedContent.indexOf("\n");
+    sanitizedContent = sanitizedContent.substring(index + 1);
+  }
+  if (sanitizedContent.trim().endsWith("```")) {
+    // remove the last line
+    const index = sanitizedContent.lastIndexOf("\n");
+    sanitizedContent = sanitizedContent.substring(0, index);
+  }
+
+  return {
+    conversation,
+    content: sanitizedContent,
+    usage: completion.usage!,
+  };
+}
+
+async function addPackageJson(conversation: ChatCompletionMessageParam[]) {
+  return await step(
+    `Add a package.json file with all necessary dependencies.` +
+      `Make its license private, and add a start script.` +
+      `Do not output any comments in this file.`,
+    conversation
+  );
+}
+
+async function addFile(filename: string, instructions: string, conversation: ChatCompletionMessageParam[]) {
+  return await step(`Add a file named ${filename}. In the file, ${instructions}`, conversation);
+}
 
 async function main() {
   const usage: CompletionUsage[] = [];
 
   // append messages to this conversation, the chat does not have a memory.
-  const conversation: Array<ChatCompletionMessageParam> = [
+  let conversation: Array<ChatCompletionMessageParam> = [
     {
       role: "system",
       content:
@@ -19,48 +68,41 @@ async function main() {
         `Only output the file contents, without any explanation. ` +
         `You always output Javascript files, to be run in node.js.`,
     },
-    {
-      role: "user",
-      content:
-        "Create a new file, called index.js, and start a new Fastify server on port 3000. It should respond to GET requests to the root URL with 'Hello, world!'",
-    },
   ];
 
-  let completion = await openai.chat.completions.create({
-    messages: conversation,
-    model: "gpt-3.5-turbo-0125",
-  });
+  const indexContent = await fs.readFile(`./text-src/index.txt`, "utf-8");
+  let indexStep = await step(indexContent, conversation, "system");
+  conversation = indexStep.conversation;
+  usage.push(indexStep.usage);
 
-  console.dir(completion, { depth: null });
+  // for now, manually / explicitly sort the files
+  const files = ["quote-of-the-day.txt", "ping.txt", "server.txt"];
 
-  if (completion.choices.length > 1) {
-    console.error("Expected only one completion choice");
+  for (const file of files) {
+    const fileContent = await fs.readFile(`./text-src/${file}`, "utf-8");
+    const jsFilename = file.substring(0, file.length - 4) + ".js";
+
+    const s = await addFile(jsFilename, fileContent, conversation);
+
+    await fs.writeFile(`./generated/${jsFilename}`, s.content, "utf-8");
+    usage.push(s.usage);
+    conversation = s.conversation;
   }
 
-  usage.push(completion.usage!);
+  const packageJson = await addPackageJson(conversation);
+  await fs.writeFile("./generated/package.json", packageJson.content);
+  usage.push(packageJson.usage);
 
-  let completionChoice = completion.choices[0];
-  process.stdout.write(completionChoice.message.content as string);
-  process.stdout.write("\n");
-
-  conversation.push(completionChoice.message);
-  conversation.push({
-    role: "user",
-    content: "Add a package.json file with all necessary dependencies.",
-  });
-
-  completion = await openai.chat.completions.create({
-    messages: conversation,
-    model: "gpt-3.5-turbo-0125",
-  });
-
-  usage.push(completion.usage!);
-  completionChoice = completion.choices[0];
-  process.stdout.write(completionChoice.message.content as string);
-  process.stdout.write("\n");
+  console.dir(conversation, { depth: null });
 
   console.log("Usage:");
-  console.dir(usage, { depth: null });
+  const usageSum = usage.reduce((acc, u) => {
+    acc.total_tokens += u.total_tokens;
+    acc.completion_tokens += u.completion_tokens;
+    acc.prompt_tokens += u.prompt_tokens;
+    return acc;
+  });
+  console.dir(usageSum, { depth: null });
 }
 
 main().catch(console.error);

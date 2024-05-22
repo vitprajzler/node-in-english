@@ -1,0 +1,4 @@
+Prepare the http server by importing all the routes we just created and serve them on their endpoints.
+Respond to GET requests to the root URL with 'Hello, AI world!'
+Respond to GET requests to /list with a JSON object containing the list of all routes that we created.
+Start the http server on port 3000.
