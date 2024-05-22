@@ -5,6 +5,9 @@
   "author": "Vit Prajzler <vit@avoguard.com>",
   "license": "UNLICENSED",
   "private": true,
+  "scripts": {
+    "build": "tsc && node out/index.js"
+  },
   "dependencies": {
     "@types/node": "^20.12.12",
     "dotenv": "^16.4.5",
