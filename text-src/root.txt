@@ -1,0 +1,1 @@
+Respond to GET requests to the root URL with a nicely designed but basic HTML page that says 'Hello, AI world!' and has links to all the endpoints you've created.

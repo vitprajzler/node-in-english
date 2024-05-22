@@ -76,7 +76,7 @@ async function main() {
   usage.push(indexStep.usage);
 
   // for now, manually / explicitly sort the files
-  const files = ["quote-of-the-day.txt", "ping.txt", "server.txt"];
+  const files = ["quote-of-the-day.txt", "ping.txt", "root.txt", "server.txt"];
 
   for (const file of files) {
     const fileContent = await fs.readFile(`./text-src/${file}`, "utf-8");
