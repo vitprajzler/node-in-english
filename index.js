@@ -1,15 +1,21 @@
 import dotenv from "dotenv";
 dotenv.config();
 import OpenAI from "openai";
-import { ChatCompletionMessageParam, CompletionUsage } from "openai/resources/index.mjs";
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import fs from "fs/promises";
 
 const OPENAI_MODEL = "gpt-3.5-turbo-0125";
 
-async function step(step: string, conversation: ChatCompletionMessageParam[], role?: "user" | "system") {
+/**
+ *
+ * @param {string} step
+ * @param {ChatCompletionMessageParam[]} conversation
+ * @param {"user" | "system"} role
+ * @returns {Promise<{conversation: ChatCompletionMessageParam[], content: string, usage: CompletionUsage}>}
+ */
+async function step(step, conversation, role = "user") {
   conversation.push({
-    role: role || "user",
+    role: role,
     content: step,
   });
 
@@ -24,7 +30,7 @@ async function step(step: string, conversation: ChatCompletionMessageParam[], ro
 
   conversation.push(completion.choices[0].message);
 
-  let sanitizedContent = completion.choices[0].message.content!;
+  let sanitizedContent = completion.choices[0].message.content;
   if (sanitizedContent.startsWith("```")) {
     // remove the first line
     const index = sanitizedContent.indexOf("\n");
@@ -39,11 +45,16 @@ async function step(step: string, conversation: ChatCompletionMessageParam[], ro
   return {
     conversation,
     content: sanitizedContent,
-    usage: completion.usage!,
+    usage: completion.usage,
   };
 }
 
-async function addPackageJson(conversation: ChatCompletionMessageParam[]) {
+/**
+ *
+ * @param {ChatCompletionMessageParam[]} conversation
+ * @returns {Promise<{conversation: ChatCompletionMessageParam[], content: string, usage: CompletionUsage}>}
+ */
+async function addPackageJson(conversation) {
   return await step(
     `Add a package.json file with all necessary dependencies.` +
       `Make its license private, and add a start script.` +
@@ -52,15 +63,28 @@ async function addPackageJson(conversation: ChatCompletionMessageParam[]) {
   );
 }
 
-async function addFile(filename: string, instructions: string, conversation: ChatCompletionMessageParam[]) {
+/**
+ *
+ * @param {string} filename
+ * @param {string} instructions
+ * @param {ChatCompletionMessageParam[]} conversation
+ * @returns {Promise<{conversation: ChatCompletionMessageParam[], content: string, usage: CompletionUsage}>}
+ */
+async function addFile(filename, instructions, conversation) {
   return await step(`Add a file named ${filename}. In the file, ${instructions}`, conversation);
 }
 
 async function main() {
-  const usage: CompletionUsage[] = [];
+  /**
+   * @type {CompletionUsage[]}
+   */
+  const usage = [];
 
   // append messages to this conversation, the chat does not have a memory.
-  let conversation: Array<ChatCompletionMessageParam> = [
+  /**
+   * @type {Array<ChatCompletionMessageParam>}
+   */
+  let conversation = [
     {
       role: "system",
       content:
@@ -75,6 +99,7 @@ async function main() {
   conversation = indexStep.conversation;
   usage.push(indexStep.usage);
 
+  await fs.mkdir("./dist");
   // for now, manually / explicitly sort the files
   const files = ["quote-of-the-day.txt", "ping.txt", "root.txt", "server.txt"];
 
@@ -84,18 +109,18 @@ async function main() {
 
     const s = await addFile(jsFilename, fileContent, conversation);
 
-    await fs.writeFile(`./generated/${jsFilename}`, s.content, "utf-8");
+    await fs.writeFile(`./dist/${jsFilename}`, s.content, "utf-8");
     usage.push(s.usage);
     conversation = s.conversation;
   }
 
   const packageJson = await addPackageJson(conversation);
-  await fs.writeFile("./generated/package.json", packageJson.content);
+  await fs.writeFile("./dist/package.json", packageJson.content);
   usage.push(packageJson.usage);
 
   console.dir(conversation, { depth: null });
 
-  console.log("Usage:");
+  console.log("Token usage:");
   const usageSum = usage.reduce((acc, u) => {
     acc.total_tokens += u.total_tokens;
     acc.completion_tokens += u.completion_tokens;

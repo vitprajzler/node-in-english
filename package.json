@@ -5,13 +5,12 @@
   "author": "Vit Prajzler <vit@avoguard.com>",
   "license": "UNLICENSED",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build": "tsc && node out/index.js"
+    "build": "node index.js"
   },
   "dependencies": {
-    "@types/node": "^20.12.12",
     "dotenv": "^16.4.5",
-    "openai": "^4.47.1",
-    "typescript": "^5.4.5"
+    "openai": "^4.47.1"
   }
 }
