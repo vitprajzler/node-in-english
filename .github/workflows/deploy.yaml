@@ -26,4 +26,4 @@ jobs:
         run: yarn --production
         working-directory: /opt/nie
       - name: Restart the service
-        run: systemctl restart nie.service
+        run: sudo systemctl restart nie.service
