@@ -1,0 +1,29 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: yarn for AI compiler
+        run: yarn
+      - name: compile using AI
+        run: yarn build
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Copy built files
+        run: cp -r dist/* /opt/nie/
+      - name: yarn install built files
+        run: yarn --production
+        working-directory: /opt/nie
+      - name: Restart the service
+        run: systemctl restart nie.service
