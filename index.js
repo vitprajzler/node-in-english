@@ -31,12 +31,13 @@ async function step(step, conversation, role = "user") {
   conversation.push(completion.choices[0].message);
 
   let sanitizedContent = completion.choices[0].message.content;
+  sanitizedContent = sanitizedContent.trim();
   if (sanitizedContent.startsWith("```")) {
     // remove the first line
     const index = sanitizedContent.indexOf("\n");
     sanitizedContent = sanitizedContent.substring(index + 1);
   }
-  if (sanitizedContent.trim().endsWith("```")) {
+  if (sanitizedContent.endsWith("```")) {
     // remove the last line
     const index = sanitizedContent.lastIndexOf("\n");
     sanitizedContent = sanitizedContent.substring(0, index);
