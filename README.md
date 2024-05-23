@@ -8,23 +8,25 @@ The text files are "compiled" and automatically deployed to https://nie.avoguard
 
 # Why?
 
-I wanted to see if I could build a server without writing any code.
-I wanted to see if I could build a server using only plain English instructions.
-
+I wanted to see if I could build a server without writing any code, using only plain English.
 I wanted to understand how little or how much engineering skills you need to build a working web server.
+
+I wanted to showcase what's possible to people who cannot / do not / do not want to write source code.
 
 # What I learned so far
 
 No, you can't just ask "build a server". That's too vague.
 The instructions have to be somewhat specific and guide the model to the proper usage. That means you need to understand the underlying libraries / frameworks to some extent.
 
+As a software engineer, the experience coding in plain text is frustrating. The amount of text required to get precise outputs is significantly higher than writing the same in source code. But that's not the intended purpose. This should not replace programming languages. It should offer a pathway towards programming languages through a natural language.
+
 # Try it out!
 
 You can try out the latest build at https://nie.avoguard.com/
 
-On every push to main, the `.txt` files are automatically built and deployed to https://nie.avoguard.com. If it doesn't work, it's probably because the generated code failed to build. Try again later.
+On every push to main, the `.txt` files are automatically built and deployed to https://nie.avoguard.com. If you can't reach the deployment, it's probably because the generated code failed to build. Just try again later.
 
-The endpoints paths are in general unstable (see (caveats)[#caveats]), but the server should always produce a root `/` HTML page lists all the endpoints in HTML format, and a `/list` endpoint that returns a JSON object listing the endpoints (or a JSON array, depending on how it feels that build 😬).
+The endpoints paths are in general unstable (see [caveats](#caveats)), but the server should always produce a root `/` HTML page lists all the endpoints in HTML format, and a `/list` endpoint that returns a JSON object listing the endpoints (or a JSON array, depending on how it feels that build 😬).
 
 # Endpoints (expected)
 
@@ -33,13 +35,17 @@ The endpoints paths are in general unstable (see (caveats)[#caveats]), but the s
 `/quote` - generates a random quote from a list of quotes that are generated at build time
 `/ping` - should return "pong"
 
-Can't reach these endpoints? See (caveats)[#caveats].
+All of them should be GET endpoints.
+
+Can't reach these endpoints? See [caveats](#caveats).
 
 # Endpoints (from LLMs own initiative)
 
 These endpoints are not explicitly defined, but do frequently appear.
 `/about` - returns a short description of the server, or a 404 error
 `/contact` - returns a contact information, or a 404 error
+
+Sometimes DELETE and POST endpoints appear.
 
 # How does it work?
 
@@ -57,7 +63,7 @@ The order of the files in the array is the order in which they are "built".
 
 I'll improve this in the future.
 
-See (How to build)[#how-to-build] for instructions on how to build the server.
+See [How to build](#how-to-build) for instructions on how to build the server.
 
 # Cost?
 
