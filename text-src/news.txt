@@ -1,0 +1,18 @@
+Add an endpoint that returns a HTML page that lists a summary of most recent
+news from around the world.
+Do not provide arbitrary lorem ipsum values.
+Do not read the contents from another file - come up with the content yourself.
+Make sure the news are corresponding to actual events that did happen.
+Also make sure the dates are correct and correspond to reality.
+
+The page should include the following information
+for each news item:
+
+- Title
+- Source
+- URL
+- Published date
+- Summary
+
+The page should be styled using CSS.
+Come up with no more than 5 news items.
