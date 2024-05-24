@@ -100,9 +100,14 @@ async function main() {
   conversation = indexStep.conversation;
   usage.push(indexStep.usage);
 
-  await fs.mkdir("./dist");
+  // only create if it doesn't exist
+  try {
+    await fs.access("./dist");
+  } catch (e) {
+    await fs.mkdir("./dist");
+  }
   // for now, manually / explicitly sort the files
-  const files = ["quote-of-the-day.txt", "ping.txt", "root.txt", "server.txt"];
+  const files = ["quote-of-the-day.txt", "news.txt", "ping.txt", "root.txt", "server.txt"];
 
   for (const file of files) {
     const fileContent = await fs.readFile(`./text-src/${file}`, "utf-8");
