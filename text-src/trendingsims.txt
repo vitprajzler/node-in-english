@@ -1,0 +1,8 @@
+fetch trending sites from https://websim.ai/api/trending with:
+name
+profile picture
+page thumbnail
+author
+simulated url
+websim id url
+etc
